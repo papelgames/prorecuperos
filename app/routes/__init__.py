@@ -1,51 +1,11 @@
-from flask import Flask, render_template, request, session, escape,\
+from app import app, db
+from flask import render_template, request, session, escape,\
                     redirect, url_for, flash, g, send_from_directory, abort
-from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-
-import os
-import urllib.parse, hashlib
+from app.schemas.post import Users, Image
 
 ALLOWED_EXTENSIONS = set(["png", "jpg", "jpge", "gif", "pdf"])
-
-app = Flask(__name__)
-app.config.from_object("config.DevelopmentConfig")
-db = SQLAlchemy(app)
-
-def allowed_file(filename):
-
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def get_profile_picture(email):
-    default = "https://lh5.googleusercontent.com/fhcUNRdmwXqNpwf4kMHMPbn3y6eOOQnx4UfI3l0OfA308R-tI3e0cg3pFeEhxshDKyXRuZj9s8aHBqrFrmbR=w1366-h635"
-    size = 512
-
-    gravatar_url = "https://www.gravatar.com/avatar/" + \
-                        hashlib.md5(email.encode("utf-8").lower()).hexdigest() + "?"
-    gravatar_url += urllib.parse.urlencode({"d":default, "s":str(size)})
-
-    return gravatar_url
-
-class Base(db.Model):
-    __abstract__ = True
-
-    id = db.Column(db.Integer, primary_key=True)
-    date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
-    date_modified = db.Column(db.DateTime, default=db.func.current_timestamp(),\
-                     onupdate=db.func.current_timestamp())
-
-class Users(Base):
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    email = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(80), nullable=False)
-    about_me = db.Column(db.String(280), default="")
-    images = db.relationship("Image", backref="owner", lazy="dynamic")
-
-class Image(Base):
-    filename = db.Column(db.String(80), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    owner_username = db.Column(db.String(50), nullable=False)
 
 @app.before_request
 def before_request():
@@ -205,6 +165,18 @@ def page_not_found(error):
 
     return render_template("404_page_not_found.html"), 404
 
-if __name__ == "__main__":
-    db.create_all()
-    app.run()
+
+
+def allowed_file(filename):
+
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def get_profile_picture(email):
+    default = "https://lh5.googleusercontent.com/fhcUNRdmwXqNpwf4kMHMPbn3y6eOOQnx4UfI3l0OfA308R-tI3e0cg3pFeEhxshDKyXRuZj9s8aHBqrFrmbR=w1366-h635"
+    size = 512
+
+    gravatar_url = "https://www.gravatar.com/avatar/" + \
+                        hashlib.md5(email.encode("utf-8").lower()).hexdigest() + "?"
+    gravatar_url += urllib.parse.urlencode({"d":default, "s":str(size)})
+
+    return gravatar_url
