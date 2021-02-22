@@ -5,7 +5,24 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from app.schemas.post import Users, Image
 
+import urllib.parse, hashlib
+
 ALLOWED_EXTENSIONS = set(["png", "jpg", "jpge", "gif", "pdf"])
+
+def allowed_file(filename):
+
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def get_profile_picture(email):
+    default = "https://lh5.googleusercontent.com/fhcUNRdmwXqNpwf4kMHMPbn3y6eOOQnx4UfI3l0OfA308R-tI3e0cg3pFeEhxshDKyXRuZj9s8aHBqrFrmbR=w1366-h635"
+    size = 512
+
+    gravatar_url = "https://www.gravatar.com/avatar/" + \
+                        hashlib.md5(email.encode("utf-8").lower()).hexdigest() + "?"
+    gravatar_url += urllib.parse.urlencode({"d":default, "s":str(size)})
+
+    return gravatar_url
+
 
 @app.before_request
 def before_request():
@@ -77,7 +94,7 @@ def profile(username):
     if user:
         files = user.images.order_by(Image.date_modified).limit(10).all()
         picture = get_profile_picture(user.email)
-
+        
         return render_template("profile.html", user=user, files=files, picture=picture)
     
     abort(404)
@@ -88,6 +105,7 @@ def edit_profile():
 
     if request.method == "POST":
         user.about_me = request.form["about"]
+        user.phone = request.form["phone"]
         db.session.commit()
 
         flash("Changes has been saved successfully!", "alert-success")
@@ -167,16 +185,3 @@ def page_not_found(error):
 
 
 
-def allowed_file(filename):
-
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def get_profile_picture(email):
-    default = "https://lh5.googleusercontent.com/fhcUNRdmwXqNpwf4kMHMPbn3y6eOOQnx4UfI3l0OfA308R-tI3e0cg3pFeEhxshDKyXRuZj9s8aHBqrFrmbR=w1366-h635"
-    size = 512
-
-    gravatar_url = "https://www.gravatar.com/avatar/" + \
-                        hashlib.md5(email.encode("utf-8").lower()).hexdigest() + "?"
-    gravatar_url += urllib.parse.urlencode({"d":default, "s":str(size)})
-
-    return gravatar_url

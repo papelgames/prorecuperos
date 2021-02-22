@@ -9,6 +9,10 @@
             <img class="card-img-top" src="{{ picture }}" alt="Card image cap">
             <div class="card-body">
                 <h1>{{ user.username|upper }}</h1>
+                <h4>Phone</h4>
+                {% if user.phone %}
+                <p>{{ user.phone }}</p>
+                {% endif %}
                 <h4>About me</h4>
                 {% if user.about_me %}
                 <p>{{ user.about_me|capitalize }}</p>

@@ -7,6 +7,8 @@ Edit Profile
 <h5>Edit Profile</h5>
 <form action="{{ url_for('edit_profile')}}" method="post">
     <div class="form-group">
+		<label for="phone">Numero de telefono (máx 22)</label>
+		<textarea name="phone" class="form-control" id="about" rows="1">{{ user.phone }}</textarea>
 		<label for="about">Tell us about yourself... (máx 280)</label>
 		<textarea name="about" class="form-control" id="about" rows="3">{{ user.about_me }}</textarea>
 	</div>
