@@ -3,6 +3,16 @@
     <label for="{{ name }}">{{ name|capitalize }}</label>
     <input id="{{ name }}" name="{{ name}}" type="{{ type }}" class="form-control" placeholder="{{ placeholder }}">
 </div>
+	{% if name.errors %}
+		{% for error in name.errors %}
+			<div class="alert-warning alert alert-dismissible fade show" role="alert">
+				<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+				</button>
+				{{ error }}
+			</div>
+		{% endfor %}
+	{% endif %}
 {% endmacro %}
 
 {% macro render_messages(messages) %}
@@ -17,5 +27,6 @@
 			</div>
 		{% endfor %}
   	{% endif %}
+
 {% endwith %}
 {% endmacro %}

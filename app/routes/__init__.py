@@ -4,6 +4,7 @@ from flask import render_template, request, session, escape,\
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from app.schemas.post import Users, Image
+from app.forms import LoginForm
 
 import urllib.parse, hashlib
 
@@ -71,21 +72,45 @@ def signup():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    login_form = LoginForm(request.form)
     if not g.user:
-        if request.method == "POST":
-            user = Users.query.filter_by(username=request.form["username"]\
+        if request.method == "POST" and login_form.validate():
+            username = login_form.username.data 
+            password = login_form.password.data
+            
+            user = Users.query.filter_by(username=username\
                         .lower()).first()
+            
 
-            if user and check_password_hash(user.password, request.form["password"]):
+            if user and check_password_hash(user.password, password):
                 session["username"] = user.username
                 flash("Now you're logged in.", "alert-success")
                 return redirect("home")
             flash("Your credentials are invalid, check and try again.", "alert-warning")
 
-        return render_template("login.html")
+        return render_template("login.html", form = login_form)
     flash("You are already logged in.", "alert-primary")
 
-    return redirect(url_for("home"))
+    return redirect(url_for("home")) 
+
+#     @app.route("/login", methods=["GET", "POST"])
+# def login():
+#     login_form = LoginForm(request.form)
+#     if not g.user:
+#         if request.method == "POST":
+#             user = Users.query.filter_by(username=request.form["username"]\
+#                         .lower()).first()
+
+#             if user and check_password_hash(user.password, request.form["password"]):
+#                 session["username"] = user.username
+#                 flash("Now you're logged in.", "alert-success")
+#                 return redirect("home")
+#             flash("Your credentials are invalid, check and try again.", "alert-warning")
+
+#         return render_template("login.html")
+#     flash("You are already logged in.", "alert-primary")
+
+#     return redirect(url_for("home")) 
 
 @app.route("/profile/<username>")
 def profile(username):
