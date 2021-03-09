@@ -1,10 +1,12 @@
-{% macro render_input(name, placeholder, type="text") %}
-<div class="form-group">
-    <label for="{{ name }}">{{ name|capitalize }}</label>
-    <input id="{{ name }}" name="{{ name}}" type="{{ type }}" class="form-control" placeholder="{{ placeholder }}">
+{% macro render_input(field_name) %}
+
+	<td> {{field_name.label}}
+<div class="form-group">	
+    {{field_name(**kwargs)|safe}} 
 </div>
-	{% if name.errors %}
-		{% for error in name.errors %}
+
+	{% if field_name.errors %}
+		{% for error in field_name.errors %}
 			<div class="alert-warning alert alert-dismissible fade show" role="alert">
 				<button type="button" class="close" data-dismiss="alert" aria-label="Close">
 				<span aria-hidden="true">&times;</span>

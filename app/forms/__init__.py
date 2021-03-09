@@ -7,7 +7,7 @@ class LoginForm(Form):
         validators.Required(message='El usuario no puede estar vacío.'),
         validators.length(min=1,max=11,message='El usuario no es válido')        
     ])
-    password = PasswordField("contraseña",[
+    password = PasswordField('Contraseña',[
         validators.Required(message='La contraseña no puede estar vacía'),
         validators.length(min=1,max=10,message='El usuario no es válido')
     ])
