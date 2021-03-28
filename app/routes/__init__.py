@@ -4,7 +4,7 @@ from flask import render_template, request, session, escape,\
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from app.schemas.post import Users, Image
-from app.forms import LoginForm
+from app.forms import LoginForm, SingupForm
 
 import urllib.parse, hashlib
 
@@ -45,27 +45,32 @@ def search():
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
+    singup_form = SingupForm(request.form)
     if not g.user:
-        if request.method == "POST":
-            username = Users.query.filter_by(username=request.form["username"]\
-                        .lower()).first()
-            email = Users.query.filter_by(email=request.form["email"].lower()).first()
-
-            if username or email:
-                flash("Usernames and emails must be unique.", "alert-warning")
-
+        if request.method == "POST" and singup_form.validate():
+            
+            username = Users.query.filter_by(username=singup_form.username.data.lower()).first()
+            email = Users.query.filter_by(email=singup_form.email.data.lower()).first()
+            
+            if username:
+                flash("El usuario ya existe", "alert-warning")
                 return redirect(request.url)
-            hashed_pw = generate_password_hash(request.form["password"], method="sha256")
-            new_user = Users(username=request.form["username"].lower(), \
-                            email=request.form["email"].lower(), password=hashed_pw)
+          
+            if email:
+                flash("El correo electronico ya existe", "alert-warning")
+                return redirect(request.url)
+
+            hashed_pw = generate_password_hash(singup_form.password.data, method="sha256")
+            new_user = Users(username=singup_form.username.data.lower(), \
+                            email=singup_form.email.data.lower(), password=hashed_pw)
             db.session.add(new_user)
             db.session.commit()
 
-            flash("You've registered successfully.", "alert-success")
+            flash("Se registro correctamente.", "alert-success")
 
             return redirect(url_for("login"))
 
-        return render_template("signup.html")
+        return render_template("signup.html", form = singup_form)
     flash("You're already logged in.", "alert-primary")
 
     return redirect(url_for("home"))

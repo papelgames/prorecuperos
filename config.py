@@ -1,6 +1,6 @@
 import os
 
-UPLOAD_FOLDER = os.path.abspath("./uploads/")
+UPLOAD_FOLDER = os.path.abspath(".\\uploads\\")
 DB_URI = "vacio"
 
 class Config(object):
@@ -17,4 +17,4 @@ class ProductionConfig(Config):
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.abspath("./database.db")
+    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.abspath(".\\database.db")
