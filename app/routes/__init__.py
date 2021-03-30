@@ -3,8 +3,8 @@ from flask import render_template, request, session, escape,\
                     redirect, url_for, flash, g, send_from_directory, abort
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from app.schemas.post import Users, Image
-from app.forms import LoginForm, SingupForm
+from app.schemas.post import Users, Image, Tareas
+from app.forms import LoginForm, SingupForm, AbmTareasForm
 
 import urllib.parse, hashlib
 
@@ -62,7 +62,8 @@ def signup():
 
             hashed_pw = generate_password_hash(singup_form.password.data, method="sha256")
             new_user = Users(username=singup_form.username.data.lower(), \
-                            email=singup_form.email.data.lower(), password=hashed_pw)
+                            email=singup_form.email.data.lower(), password=hashed_pw,\
+                                status="a")
             db.session.add(new_user)
             db.session.commit()
 
@@ -98,24 +99,6 @@ def login():
 
     return redirect(url_for("home")) 
 
-#     @app.route("/login", methods=["GET", "POST"])
-# def login():
-#     login_form = LoginForm(request.form)
-#     if not g.user:
-#         if request.method == "POST":
-#             user = Users.query.filter_by(username=request.form["username"]\
-#                         .lower()).first()
-
-#             if user and check_password_hash(user.password, request.form["password"]):
-#                 session["username"] = user.username
-#                 flash("Now you're logged in.", "alert-success")
-#                 return redirect("home")
-#             flash("Your credentials are invalid, check and try again.", "alert-warning")
-
-#         return render_template("login.html")
-#     flash("You are already logged in.", "alert-primary")
-
-#     return redirect(url_for("home")) 
 
 @app.route("/profile/<username>")
 def profile(username):
@@ -202,6 +185,28 @@ def logout():
     flash("You're logged out.", "alert-secondary")
 
     return redirect(url_for("index"))
+
+@app.route("/abmtareas", methods=["GET", "POST"])
+def abmtareas():
+    abmtareas_form = AbmTareasForm(request.form)
+    if g.user:
+        if request.method == "POST" and abmtareas_form.validate():
+            
+            descripcion = abmtareas_form.descripcion.data
+            vencimiento = abmtareas_form.vencimiento.data
+
+            nuevo_reg_tarea = Tareas(descripcion=descripcion, vencimiento=vencimiento)
+
+            db.session.add(nuevo_reg_tarea)
+            db.session.commit()
+
+            flash("Se a generado una nueva tarea", "alert-success")
+
+            return redirect(url_for("abmtareas"))       
+            
+        return render_template("abmtareas.html", form = abmtareas_form)
+    flash("Primero debes loguearte", "alert-warning")
+    return redirect(url_for("login"))
 
 @app.route("/about")
 def about():

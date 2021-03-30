@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% from "_render_elements.html" import render_input %}
+
+{% block title %}
+ABM Tareas
+{% endblock %}
+{% block content %}
+<div class="row">
+	<div class="offset-md-3 col-md-6">
+		<h1>ABM Tareas</h1>
+		<form method="post" action="{{ url_for('abmtareas') }}" novalidate>
+			
+			{{ render_input(form.descripcion, id= "descripcion" , class="form-control", placeholder="Describa tarea" ) }}
+			{{ render_input(form.vencimiento, id= "vencimiento" ,class="form-control", placeholder="Cantidad de dias para vencimiento" ) }}
+		
+			<button type="submit" class="btn btn-primary">Crear tarea</button>
+		</form>
+	</div>
+</div>
+{% endblock %}

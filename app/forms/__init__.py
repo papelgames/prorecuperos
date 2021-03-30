@@ -26,3 +26,11 @@ class SingupForm(Form):
         validators= [Required('La contraseña no puede estar vacía.'),
         Length (min=6, max=10, message = 'La contraseña debe tener de 6 a 10 caracteres.')
     ])    
+
+class AbmTareasForm(Form):
+    descripcion = StringField('Descripcion de la tarea',
+        validators=[Required('Debe completar la descripcion de la tarea')        
+    ])
+    vencimiento= IntegerField('Dias para el vencimiento',
+        validators=[Required('Los dias para el vencimiento no pueden estar vacíos')
+    ])

@@ -19,6 +19,7 @@ class Users(Base):
     status = db.Column(db.String(2), nullable=False)
     fe_ultima_contrasenia = db.Column(db.DateTime)
     images = db.relationship("Image", backref="owner", lazy="dynamic")
+    recuperos = db.relationship("Recuperos")
 
 class Recuperos (Base):
     rama = db.Column(db.Integer)
@@ -28,17 +29,40 @@ class Recuperos (Base):
     fe_pago = db.Column(db.DateTime)
     importe_pagado = db.Column(db.Float())
     compania = db.Column(db.String(50))
-    estado = db.Column(db.String(2), nullable=False)
-    desc_sinestro = db.Column(db.String(400))
+    estado = db.Column(db.Integer(), nullable=False)
+    desc_sinestro = db.Column(db.Text())
     tercero = db.Column(db.String(50))
     tel_tercero = db.Column(db.String(50))
     mail_tercero = db.Column(db.String(50))
     asegurado = db.Column(db.String(50))
     monto_franquicia = db.Column(db.Float)
-    responsabilidad = db.Column(db.String(2), nullable=True)
+    responsabilidad = db.Column(db.Integer())
     usuario_responsable = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    tareas_pendientes = db.relationship ("TareasPendientes")
 
 class Image(Base):
     filename = db.Column(db.String(80), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     owner_username = db.Column(db.String(50), nullable=False)
+
+class Acciones (Base):
+    descripcion = db.Column(db.String(50), nullable=False)
+    estado_recupero = db.Column(db.Integer)
+    id_tarea_siguiente = db.Column(db.Integer, db.ForeignKey("tareas.id"))
+    tareas = db.relationship("Tareas", secondary = "tareasacciones")
+
+class Tareas (Base):
+    descripcion = db.Column(db.String(50), nullable=False)
+    vencimiento = db.Column(db.Integer, nullable=False)
+    acciones = db.relationship("Acciones", secondary="tareasacciones")
+    tareas_pendientes = db.relationship ("TareasPendientes")
+
+class TareasAcciones (Base):
+    __tablename__ = "tareasacciones"
+    id_tarea = db.Column(db.Integer, db.ForeignKey("tareas.id"), primary_key = True)
+    id_accion = db.Column(db.Integer, db.ForeignKey("acciones.id"), primary_key = True)
+
+class TareasPendientes (Base):
+    id_tarea = db.Column(db.Integer, db.ForeignKey("tareas.id"), nullable=False)
+    id_recupero = db.Column(db.Integer, db.ForeignKey("recuperos.id"), nullable=False)
+    fe_vencimiento = db.Column(db.DateTime, nullable = False)
