@@ -34,3 +34,11 @@ class AbmTareasForm(Form):
     vencimiento= IntegerField('Dias para el vencimiento',
         validators=[Required('Los dias para el vencimiento no pueden estar vacíos')
     ])
+
+class AbmPermisosForm (Form):
+    formulario = StringField('Nombre de la pantalla',
+        validators=[Required('Debe completar el nombre de la pantalla')        
+    ])
+
+class PerfilesForm (Form):
+    pass

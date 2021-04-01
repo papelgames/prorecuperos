@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}
+Perfil de usuario
+{% endblock %}
+{% block content %}
+
+    <div class="col-md-8">
+        <h1>Permisos por usuario</h1>
+        {% if perfil_usuario %}
+        <div class="list-group">
+            {% for p_usuario in perfil_usuario[::-1] %}
+            
+                <li class="list-group-item">{{ p_usuario.formulario}}</li>
+            
+            {% endfor %}
+        </div>
+        {% else %}
+        <p>No tiene permisos aún este usuario.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

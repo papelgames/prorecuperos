@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "_render_elements.html" import render_input %}
+
+{% block title %}
+ABM Tareas
+{% endblock %}
+{% block content %}
+<div class="row">
+	<div class="offset-md-3 col-md-6">
+		<h1>ABM Permisos</h1>
+		<form method="post" action="{{ url_for('abmpermisos') }}" novalidate>
+			
+			{{ render_input(form.formulario, id= "formulario" , class="form-control", placeholder="Nombre de la pantalla" ) }}
+			
+			<button type="submit" class="btn btn-primary">Crear permiso</button>
+		</form>
+	</div>
+</div>
+{% endblock %}

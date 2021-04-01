@@ -3,8 +3,8 @@ from flask import render_template, request, session, escape,\
                     redirect, url_for, flash, g, send_from_directory, abort
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from app.schemas.post import Users, Image, Tareas
-from app.forms import LoginForm, SingupForm, AbmTareasForm
+from app.schemas.post import Users, Image, Tareas, Permisos, UsuariosPermisos, Recuperos
+from app.forms import LoginForm, SingupForm, AbmTareasForm, AbmPermisosForm
 
 import urllib.parse, hashlib
 
@@ -25,10 +25,23 @@ def get_profile_picture(email):
     return gravatar_url
 
 
+
+'''         
+prueba = db.session.query(Reclamo, Servicio, Cliente, Estado).\
+         join(Reclamo.servicio, Reclamo.cliente, Reclamo.estado).\
+         all()
+
+
+'''
 @app.before_request
 def before_request():
+   
     if "username" in session:
         g.user = session["username"]
+        permisos_usuarios = Permisos.query.filter(Permisos.pu.any(username = g.user)).all()
+        g.id_permisos = []
+        for per in permisos_usuarios:
+            g.id_permisos.append(per.formulario) 
     else:
         g.user = None
 
@@ -157,7 +170,12 @@ def get_all_files():
 
     return render_template("files.html", files=files)
 
-
+@app.route("/perfiles")
+@app.route("/perfiles/<username>")
+def get_perfil_usuario(username):
+    perfil_usuario = Permisos.query.filter(Permisos.pu.any(username = username)).all()
+    
+    return render_template("perfiles.html", perfil_usuario = perfil_usuario)
 @app.route("/myfiles")
 def get_files():
     if g.user:
@@ -207,6 +225,28 @@ def abmtareas():
         return render_template("abmtareas.html", form = abmtareas_form)
     flash("Primero debes loguearte", "alert-warning")
     return redirect(url_for("login"))
+
+@app.route("/abmpermisos", methods=["GET", "POST"])
+def abmpermisos():
+    abmpermisos_form = AbmPermisosForm(request.form)
+    if g.user:
+        if request.method == "POST" and abmpermisos_form.validate():
+            
+            formulario = abmpermisos_form.formulario.data
+            
+            nuevo_reg_permiso = Permisos(formulario=formulario)
+
+            db.session.add(nuevo_reg_permiso)
+            db.session.commit()
+
+            flash("Se a generado una nueva permiso", "alert-success")
+
+            return redirect(url_for("abmpermisos"))       
+            
+        return render_template("abmpermisos.html", form = abmpermisos_form)
+    flash("Primero debes loguearte", "alert-warning")
+    return redirect(url_for("login"))
+
 
 @app.route("/about")
 def about():
