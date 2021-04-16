@@ -4,10 +4,10 @@ from flask import render_template, request, session, escape,\
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from app.schemas.post import Users, Image, Tareas, Permisos, UsuariosPermisos, Recuperos
-from app.forms import LoginForm, SingupForm, AbmTareasForm, AbmPermisosForm
+from app.forms import LoginForm, SingupForm, AbmTareasForm, AbmPermisosForm, PerfilesForm, PantallasForm, UploadForm
 
 import urllib.parse, hashlib
-
+import os
 ALLOWED_EXTENSIONS = set(["png", "jpg", "jpge", "gif", "pdf"])
 
 def allowed_file(filename):
@@ -35,20 +35,24 @@ prueba = db.session.query(Reclamo, Servicio, Cliente, Estado).\
 '''
 @app.before_request
 def before_request():
-   
+    
     if "username" in session:
         g.user = session["username"]
         permisos_usuarios = Permisos.query.filter(Permisos.pu.any(username = g.user)).all()
-        g.id_permisos = []
-        for per in permisos_usuarios:
-            g.id_permisos.append(per.formulario) 
+        #g.id_permisos = []
+        #for per in permisos_usuarios:
+        #    g.id_permisos.append(per.formulario) 
+        
     else:
         g.user = None
-
+   
 @app.route("/")
 def index():
-
+   
     return render_template("index.html")
+
+
+
 
 @app.route("/search")
 def search():
@@ -74,9 +78,11 @@ def signup():
                 return redirect(request.url)
 
             hashed_pw = generate_password_hash(singup_form.password.data, method="sha256")
-            new_user = Users(username=singup_form.username.data.lower(), \
-                            email=singup_form.email.data.lower(), password=hashed_pw,\
-                                status="a")
+            new_user = Users(username=singup_form.username.data.lower(), 
+                            email=singup_form.email.data.lower(), password=hashed_pw,
+                                status=1, 
+                                puesto = 1, 
+                                equipo = 1)
             db.session.add(new_user)
             db.session.commit()
 
@@ -85,7 +91,7 @@ def signup():
             return redirect(url_for("login"))
 
         return render_template("signup.html", form = singup_form)
-    flash("You're already logged in.", "alert-primary")
+    flash("Ya tienes una cuenta para loguearte.", "alert-primary")
 
     return redirect(url_for("home"))
 
@@ -103,12 +109,12 @@ def login():
 
             if user and check_password_hash(user.password, password):
                 session["username"] = user.username
-                flash("Now you're logged in.", "alert-success")
+                flash("Ahora te encuentras logueado.", "alert-success")
                 return redirect("home")
-            flash("Your credentials are invalid, check and try again.", "alert-warning")
+            flash("Tus credenciales no son válidas. Vuelve a intentarlo.", "alert-warning")
 
         return render_template("login.html", form = login_form)
-    flash("You are already logged in.", "alert-primary")
+    flash("Ya te encuentras logueado", "alert-primary")
 
     return redirect(url_for("home")) 
 
@@ -155,6 +161,7 @@ def home():
                 user = Users.query.filter_by(username=g.user).first()
                 file_to_db = Image(filename=filename, owner=user, \
                                 owner_username=user.username)
+                print(file)
                 db.session.add(file_to_db)
                 db.session.commit()
                 file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
@@ -164,18 +171,118 @@ def home():
 
     return redirect(url_for("login"))
 
+@app.route("/basexlsx", methods=["GET", "POST"])
+def basexlsx():
+    basexlsx_form = UploadForm(request.form)
+    if g.user:
+        if request.method == "POST" and basexlsx_form.validate():
+            # image_data = request.FILES[form.image.name].read()
+            if basexlsx_form.basexlsx.name not in request.files:
+                flash("No se ha seleccionado ningun archivo", "alert-danger")
+                return redirect(request.url)
+            file = request.files[basexlsx_form.basexlsx.name]
+            print (file)
+            if file.filename == "":
+                flash("No selected file.", "alert-warning")
+                return redirect(request.url)
+            if file:# and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                
+                file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+                import openpyxl 
+                documento = openpyxl.load_workbook(os.path.abspath(app.config["UPLOAD_FOLDER"] + '\\' + filename))
+                
+                ws = documento.active
+                smq = (ws.rows)
+                
+                registros_nuevos = 0
+                registros_repetidos = 0
+                registros_total = 0
+                for campo in smq:
+                    registros_total +=1
+                    if Recuperos.query.filter_by (rama = campo[0].value).first() and \
+                       Recuperos.query.filter_by (siniestro = campo[1].value).first():
+                       registros_repetidos += 1
+                       continue
+                    rama = campo[0].value 
+                    siniestro = campo[1].value
+                    desc_siniestro = campo[2].value
+                    fe_ocurrencia = campo[3].value
+                    importe_pagado = campo[4].value
+                    estado = 1
+                    
+                    registro_recupero = Recuperos(rama = rama,\
+                                                  siniestro = siniestro,\
+                                                  desc_siniestro = desc_siniestro,\
+                                                  fe_ocurrencia = fe_ocurrencia,\
+                                                  importe_pagado =importe_pagado,\
+                                                  estado = estado)
+                    db.session.add(registro_recupero)
+                    registros_nuevos += 1
+                db.session.commit()
+                flash("Se han ingresado: " + str(registros_nuevos) + " nuevos registros. Se rechazaron: " + \
+                    str(registros_repetidos) + " registros ya existentes. El archivo contenia: " + str(registros_total) \
+                        + " registros.", "alert-primary" )
+
+        return render_template("subirbases.html", form = basexlsx_form)
+    flash("You must be logged in.", "alert-warning")
+
+    return redirect(url_for("login"))
+
+
 @app.route("/files")
 def get_all_files():
     files = Image.query.order_by(Image.date_modified).limit(200).all()
 
     return render_template("files.html", files=files)
 
-@app.route("/perfiles")
-@app.route("/perfiles/<username>")
-def get_perfil_usuario(username):
+@app.route("/perfiles/", methods=["GET", "POST"])
+@app.route("/perfiles/<username>", methods=["GET", "POST"])
+def perfiles(username = "vacio"):
+    #falta validar el form  y si está el usuario logueado
+    perfil_usuario_Form = PerfilesForm(request.form)
     perfil_usuario = Permisos.query.filter(Permisos.pu.any(username = username)).all()
+    pantalla_Form = PantallasForm(request.form)
     
-    return render_template("perfiles.html", perfil_usuario = perfil_usuario)
+    perfil_usuario_Form.username.choices = [""]
+    
+    for i in Users.query.all():
+        perfil_usuario_Form.username.choices.append (i.username)
+
+        
+
+    pantalla_Form.formulario.choices = [""]
+
+    for i  in Permisos.query.all():
+        pantalla_Form.formulario.choices.append (i.formulario )
+    
+    
+    
+    if request.method == "POST" and pantalla_Form.validate():
+        
+        id_usuario = Users.query.filter_by (username = username).first().id
+        id_permiso = Permisos.query.filter_by(formulario = pantalla_Form.formulario.data).first().id
+
+        nuevo_permiso_en_usuario = UsuariosPermisos(id_usuario=id_usuario, \
+                                                    id_permiso = id_permiso)
+
+        db.session.add(nuevo_permiso_en_usuario)
+        db.session.commit()
+
+        flash("Se a generado una nueva permiso", "alert-success")
+        url_for("perfiles", username=username)
+        #redirect(url_for("perfiles", username = perfil_usuario_Form.username.data))  
+    return render_template("perfiles.html", form = perfil_usuario_Form, \
+                                            perfil_usuario = perfil_usuario, \
+                                            form2 = pantalla_Form)
+    
+
+@app.route("/buscarperfil")
+def buscarperfil():
+    username = request.args.get("username")
+
+    return redirect(url_for("perfiles", username=username))
+
 @app.route("/myfiles")
 def get_files():
     if g.user:
@@ -257,6 +364,4 @@ def about():
 def page_not_found(error):
 
     return render_template("404_page_not_found.html"), 404
-
-
 

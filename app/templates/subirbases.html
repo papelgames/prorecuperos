@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "_render_elements.html" import render_input %}
+{% block title %}
+Subir bases
+{% endblock %}
+{% block content %}
+<div class="row">
+	<div class="offset-md-4">
+		<h1>Subir bases</h1>
+		<p>Select your file to upload.<b>*</b></p>
+		<form method="POST" action="{{ url_for('basexlsx') }}" enctype="multipart/form-data">
+			<p>{{render_input( form.basexlsx, id= "basexlsx" , placeholder="Subir base" )}}
+				<input type="submit" value="Cargar">
+			</p>
+		</form>
+		<br>
+
+		
+			<h3>El archivo debe ser un .XLSX con las siguientes 5 columnas:</h1>
+			
+			<ul class="list-group list-group-flush">
+				<li class="list-group-item">Rama</li>
+				<li class="list-group-item">Siniestro</li>
+				<li class="list-group-item">Descripcion del siniestro</li>
+				<li class="list-group-item">Fecha de ocurrencia</li>
+				<li class="list-group-item">Monto pagado</li>
+			</ul>
+			<b>* </b> En el archivo debe haber una sola solapa y no debe tener los nombres de los campos en la primer fila.
+		
+	</div>
+</div>
+{% endblock %}

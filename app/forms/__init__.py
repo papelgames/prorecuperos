@@ -1,5 +1,5 @@
 #-*- coding: utf-8 -*-
-from wtforms import Form, StringField, TextField,  PasswordField, IntegerField
+from wtforms import Form, StringField, TextField, PasswordField, IntegerField, SelectField, FileField
 from wtforms.fields.html5 import EmailField
 from wtforms.validators import Required, Email, Length
 
@@ -41,4 +41,14 @@ class AbmPermisosForm (Form):
     ])
 
 class PerfilesForm (Form):
-    pass
+    username = SelectField('Nombre de usuario', choices =[], coerce = str, default = None,
+        validators=[Required('Debe elegir un usuario')
+    ])
+
+class PantallasForm (Form):
+    formulario = SelectField('Nombre de la pantalla', choices =[], coerce = str, default = None,
+        validators=[Required('Debe elegir una pantalla')
+    ])
+
+class UploadForm(Form):
+    basexlsx = FileField('Excel')

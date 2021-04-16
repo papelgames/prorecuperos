@@ -14,11 +14,13 @@
   {% endblock %}
 </head>
 <body>
+ 
+
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     {% if g.user %}
-    <a class="navbar-brand" href="{{ url_for('home') }}">ISC & CodeNoSchool</a>
+    <a class="navbar-brand" href="{{ url_for('home') }}">Recuperos</a>
     {% else %}
-    <a class="navbar-brand" href="{{ url_for('index') }}">ISC & CodeNoSchool</a>
+    <a class="navbar-brand" href="{{ url_for('index') }}">Recuperos</a>
     {% endif %}
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -56,6 +58,17 @@
             <div class="dropdown-divider"></div>
             <a class="dropdown-item" href="{{ url_for('about') }}">About (Help)</a>
           </div>
+          {% for i in g.id_permisos %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for(i) }}">{{ i }}</a>
+          </li>
+          {% endfor %}
+          {% for e in g.menu %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ e }}">{{ g.menu[e] }}</a>
+          </li>
+          {% endfor %}
+
         </li>
       </ul>
       <form method="GET" action="{{ url_for('search') }}" class="form-inline my-2 my-lg-0">
@@ -75,8 +88,7 @@
 
   <footer class="footer">
       <div class="container">
-        <span class="text-muted">&copy 2017 <a href="https://goo.gl/T64USM" target="_blank">ISC</a> 
-        & <a href="https://goo.gl/JBsdGy" target="_blank">CodeNoSchool</a>. All rigths reserved.</span>
+        <span class="text-muted">&copy 2021. El sistema solo puede ser utilizado por ususarios habilitados.</span>
       </div>
     </footer>
 

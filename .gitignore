@@ -4,3 +4,4 @@ migrations\*
 app\__pycache__
 entorno.cmd
 ayuda_memoria.txt
+uploads\*.xlsx
