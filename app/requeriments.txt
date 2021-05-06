@@ -5,4 +5,5 @@ mysql-connector-python-rf
 Flask-migrate
 email-validator
 openpyxl
+flask-mail
 

@@ -49,10 +49,12 @@ class Recuperos (Base):
     tel_tercero = db.Column(db.String(50))
     mail_tercero = db.Column(db.String(50))
     asegurado = db.Column(db.String(50))
+    poliza = db.Column(db.Integer)
     monto_franquicia = db.Column(db.Float)
     responsabilidad = db.Column(db.Integer()) #tabla respondabilidades
     usuario_responsable = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
     tareas_pendientes = db.relationship ("TareasPendientes")
+    cobros = db.relationship ("Cobros")
     
 class Responsabilidades (Base):
     desc_responsabilidad = db.Column(db.String(50), nullable = False)
@@ -79,14 +81,16 @@ class Acciones (Base):
     __tablename__ = "acciones"
     descripcion = db.Column(db.String(50), nullable=False)
     estado_recupero = db.Column(db.Integer)
+    envia_correo = db.Column(db.String(2))
+    destinatario_correo = db.Column(db.String(2))
     id_tarea_siguiente = db.Column(db.Integer, db.ForeignKey("tareas.id"))
-    tareas = db.relationship("Tareas", secondary = "tareasacciones")
+    tareas = db.relationship("Tareas", secondary = "tareasacciones", backref = "ta", lazy="dynamic")
 
 class Tareas (Base):
     __tablename__ = "tareas"
     descripcion = db.Column(db.String(50), nullable=False)
     vencimiento = db.Column(db.Integer, nullable=False)
-    acciones = db.relationship("Acciones", secondary="tareasacciones")
+    acciones = db.relationship("Acciones", secondary="tareasacciones", backref="ta", lazy= "dynamic")
     tareas_pendientes = db.relationship ("TareasPendientes")
 
 class TareasAcciones (Base):
@@ -102,7 +106,7 @@ class TareasPendientes (Base):
     
 class Permisos (Base):
     __tablename__ = "permisos"
-    formulario = db.Column(db.String)
+    formulario = db.Column(db.String(20))
     #permisos_usuarios = db.relationship("Users", secondary = "usuariospermisos",backref="up", lazy="dynamic")
 
 class UsuariosPermisos (Base):
@@ -112,5 +116,32 @@ class UsuariosPermisos (Base):
 
 class Estados (Base):
     __tablename__ = "estados"
-    desc_estado = db.Column(db.String, nullable = False)
-    estado_tabla = db.Column(db.String, nullable = False) 
+    desc_estado = db.Column(db.String(15), nullable = False)
+    estado_tabla = db.Column(db.String(30), nullable = False) 
+
+class Cobros (Base):
+    __tablename__ = "cobros"
+    pagador = db.Column(db.String(50), nullable = False)
+    factura_nacion = db.Column(db.String(13))
+    cantidad_cuotas = db.Column(db.Integer)
+    importe_total = db.Column(db.Float)
+    id_recupero = db.Column(db.Integer, db.ForeignKey("recuperos.id"),  primary_key = True, nullable=False)
+    importes_cobros = db.relationship("ImportesCobros")
+
+class ImportesCobros (Base):
+    __tablename__ = "importescobros"    
+    estado_cobro = db.Column(db.Integer)
+    fe_probable_cobro = db.Column(db.DateTime)
+    fe_cobro = db.Column(db.DateTime)
+    cuenta_bancaria = db.Column(db.String(50))
+    numero_cuota = db.Column(db.Integer)
+    importe_cuota = db.Column(db.Float)
+    id_cobro = db.Column(db.Integer, db.ForeignKey("cobros.id"), primary_key = True, nullable = False)
+    
+class Observaciones (Base):
+    __tablename__ = "observaciones"
+    observacion = db.Column(db.Text)
+    id_recupero = db.Column(db.Integer)
+    id_cobro = db.Column(db.Integer)
+    id_tarea_pendiente = db.Column(db.Integer)
+    id_user = db.Column(db.Integer, nullable = False)

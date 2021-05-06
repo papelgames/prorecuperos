@@ -1,4 +1,4 @@
-from app import app, db
+from app import app, db, mail
 from flask import render_template, request, session, escape,\
                     redirect, url_for, flash, g, send_from_directory, abort
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -6,9 +6,13 @@ from werkzeug.utils import secure_filename
 from app.schemas.post import Users, Image, Tareas, Permisos, UsuariosPermisos, Recuperos
 from app.forms import LoginForm, SingupForm, AbmTareasForm, AbmPermisosForm, PerfilesForm, PantallasForm, UploadForm
 
+from app.common.mail import send_email, send_email_direct
+
 import urllib.parse, hashlib
 import os
 ALLOWED_EXTENSIONS = set(["png", "jpg", "jpge", "gif", "pdf"])
+
+
 
 def allowed_file(filename):
 
@@ -85,7 +89,6 @@ def signup():
                                 equipo = 1)
             db.session.add(new_user)
             db.session.commit()
-
             flash("Se registro correctamente.", "alert-success")
 
             return redirect(url_for("login"))
@@ -240,6 +243,7 @@ def get_all_files():
 @app.route("/perfiles/<username>", methods=["GET", "POST"])
 def perfiles(username = "vacio"):
     #falta validar el form  y si está el usuario logueado
+    
     perfil_usuario_Form = PerfilesForm(request.form)
     perfil_usuario = Permisos.query.filter(Permisos.pu.any(username = username)).all()
     pantalla_Form = PantallasForm(request.form)
@@ -280,7 +284,7 @@ def perfiles(username = "vacio"):
 @app.route("/buscarperfil")
 def buscarperfil():
     username = request.args.get("username")
-
+    
     return redirect(url_for("perfiles", username=username))
 
 @app.route("/myfiles")
@@ -364,4 +368,3 @@ def about():
 def page_not_found(error):
 
     return render_template("404_page_not_found.html"), 404
-

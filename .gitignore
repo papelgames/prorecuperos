@@ -1,7 +1,8 @@
 __pycache__
-database.db
-migrations\*
-app\__pycache__
+database.db 
+migrations/
+app/__pycache__
 entorno.cmd
 ayuda_memoria.txt
-uploads\*.xlsx
+uploads/*.xlsx
+/__pycache__/*
