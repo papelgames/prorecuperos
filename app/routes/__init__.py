@@ -3,10 +3,11 @@ from flask import render_template, request, session, escape,\
                     redirect, url_for, flash, g, send_from_directory, abort
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from app.schemas.post import Users, Image, Tareas, Permisos, UsuariosPermisos, Recuperos
-from app.forms import LoginForm, SingupForm, AbmTareasForm, AbmPermisosForm, PerfilesForm, PantallasForm, UploadForm
+from app.schemas.post import Users, Image, Tareas, Permisos, UsuariosPermisos, Recuperos, Cobros, ImportesCobros
+from app.forms import LoginForm, SingupForm, AbmTareasForm, AbmPermisosForm, PerfilesForm, PantallasForm, UploadForm, CobrosForm, PerfilesAmpliadosForm
+from app.routes.funciones import Asignador
 
-from app.common.mail import send_email, send_email_direct
+from app.common.mail import send_email
 
 import urllib.parse, hashlib
 import os
@@ -137,16 +138,49 @@ def profile(username):
 @app.route("/profile/edit", methods=["GET", "POST"])
 def edit_profile():
     user = Users.query.filter_by(username=g.user).first()
+    perfiles_form = PerfilesForm(request.form)
+       
+    if request.method == "POST" and perfiles_form.validate():
 
-    if request.method == "POST":
-        user.about_me = request.form["about"]
-        user.phone = request.form["phone"]
+        user.nombre = perfiles_form.nombre.data
+        user.apellido = perfiles_form.apellido.data
+        user.about_me = perfiles_form.about.data 
+        user.phone = perfiles_form.phone.data 
+       
         db.session.commit()
 
-        flash("Changes has been saved successfully!", "alert-success")
+        flash("Se han guardado los cambios correctamente", "alert-success")
         return redirect(url_for("profile", username=g.user))
 
-    return render_template("edit_profile.html", user=user)
+    return render_template("edit_profile.html", user=user, form=perfiles_form)
+
+
+@app.route("/perfiles/editar/<username>", methods=["GET", "POST"])
+def perfiles_editar(username):
+
+    user = Users.query.filter_by(username=username).first()
+    
+    if not user:
+        return redirect(url_for("profile", username=g.user))
+
+    perfiles_ampliados_form = PerfilesAmpliadosForm(request.form)
+    if request.method == "POST" and perfiles_ampliados_form.validate():
+
+        user.nombre = perfiles_ampliados_form.nombre.data
+        user.apellido = perfiles_ampliados_form.apellido.data
+        user.phone = perfiles_ampliados_form.phone.data
+        user.estado = perfiles_ampliados_form.estado.data
+        user.puesto = perfiles_ampliados_form.puesto.data
+        user.equipo = perfiles_ampliados_form.equipo.data
+        user.dependencia = perfiles_ampliados_form.dependencia.data
+       
+        db.session.commit()
+
+        flash("Se han guardado los cambios correctamente", "alert-success")
+        return redirect(url_for("profile", username=g.user))
+
+    return render_template("perfiles_editar.html", user=user, form=perfiles_ampliados_form)
+
 
 @app.route("/home", methods=["GET", "POST"])
 def home():
@@ -232,6 +266,12 @@ def basexlsx():
 
     return redirect(url_for("login"))
 
+@app.route("/recuperos")
+def recuperos():
+    registros = Recuperos.query.all()
+
+
+    return render_template("recuperos.html", registros = registros)
 
 @app.route("/files")
 def get_all_files():
@@ -253,22 +293,22 @@ def perfiles(username = "vacio"):
     for i in Users.query.all():
         perfil_usuario_Form.username.choices.append (i.username)
 
-        
-
     pantalla_Form.formulario.choices = [""]
 
     for i  in Permisos.query.all():
         pantalla_Form.formulario.choices.append (i.formulario )
     
-    
-    
+                            
     if request.method == "POST" and pantalla_Form.validate():
         
-        id_usuario = Users.query.filter_by (username = username).first().id
-        id_permiso = Permisos.query.filter_by(formulario = pantalla_Form.formulario.data).first().id
+        usuario_id = Users.query.filter_by (username = username).first().id
+        permiso_id = Permisos.query.filter_by(formulario = pantalla_Form.formulario.data).first().id
 
-        nuevo_permiso_en_usuario = UsuariosPermisos(id_usuario=id_usuario, \
-                                                    id_permiso = id_permiso)
+        print (str(usuario_id))
+        print (str(permiso_id))    
+
+        nuevo_permiso_en_usuario = UsuariosPermisos(usuario_id=usuario_id, \
+                                                    permiso_id = permiso_id)
 
         db.session.add(nuevo_permiso_en_usuario)
         db.session.commit()
@@ -350,7 +390,7 @@ def abmpermisos():
             db.session.add(nuevo_reg_permiso)
             db.session.commit()
 
-            flash("Se a generado una nueva permiso", "alert-success")
+            flash("Se ha generado una nueva permiso", "alert-success")
 
             return redirect(url_for("abmpermisos"))       
             
@@ -363,7 +403,48 @@ def abmpermisos():
 def about():
 
     return render_template("about.html")
+
+@app.route("/nuevo_cobro", methods=["GET", "POST"])
+@app.route("/nuevo_cobro/<recupero>", methods=["GET", "POST"])
+def nuevo_cobro(recupero= None):
+    #hacer control de ingreso si o si con número de recupero. 
     
+    control_id = Cobros.query.filter_by (id_recupero = recupero).first()
+
+    if control_id:
+        flash("Ha ingresado a editar un cobro.", "alert-success")
+        return render_template("en_construccion.html")
+
+    cobros_form = CobrosForm(request.form)
+
+    if g.user:
+        if request.method == "POST" and cobros_form.validate():
+            
+            pagador = cobros_form.pagador.data 
+            factura_nacion = cobros_form.factura_nacion.data
+            cantidad_cuotas = cobros_form.cantidad_cuotas.data
+            importe_total = cobros_form.importe_total.data
+            
+            alta_cobro = Cobros(pagador = pagador, 
+                                factura_nacion = factura_nacion, 
+                                cantidad_cuotas =cantidad_cuotas,
+                                importe_total = importe_total,
+                                id_recupero = recupero)
+
+            db.session.add(alta_cobro)
+            db.session.commit()
+
+            flash("Generado un nuevo cobro", "alert-success")
+            
+            return redirect(url_for("recuperos")) 
+            #return redirect(url_for("nuevo_cobro", recupero = recupero))        
+            
+        return render_template("nuevo_cobro.html", form = cobros_form, recupero = recupero)
+    flash("Primero debes loguearte", "alert-warning")
+    return redirect(url_for("login"))
+
+
+
 @app.errorhandler(404)
 def page_not_found(error):
 

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% from "_render_elements.html" import render_input %}
+{% block title %}
+Perfil de usuario
+{% endblock %}
+{% block content %}
+
+
+{% if registros %}
+
+    <h1>Recuperos</h1>
+      <table class="table table-striped">
+        <thead>
+        <tr >
+            <th scope="col">Nro recupero</th>
+            <th scope="col">Rama</th>
+            <th scope="col">Siniestro</th>
+            <th scope="col">Ocurrencia</th>
+            <th scope="col">Importe pagado</th>
+            <th scope="col">Responsabilidad</th>
+            <th scope="col">Usuario responsable</th>
+            <th scope="col">Acción</th>
+        </tr>
+        </thead>
+        
+            {% for registro in registros %}
+              <tbody>            
+                <tr class="clickable" data-toggle="collapse" data-target = {{'#' ~ registro.id}}>
+                  <th scope="row">{{ registro.id}}</th>
+                  <td>{{ registro.rama}}</td>
+                  <td>{{ registro.siniestro}}</td>
+                  <td>{{ registro.fe_ocurrencia.strftime('%d-%m-%Y')}}</td>
+                  <td>{{ registro.importe_pagado}}</td>
+                  <td>{{ registro.responsabilidad}}</td>
+                  <td>{{ registro.usuario_responsable}}</td>
+                  <td>
+                    <div class="dropdown">
+                      <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Acción
+                      </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item" href="{{ url_for('nuevo_cobro', recupero=registro.id) }}">Nuevo cobro</a>
+                        <a class="dropdown-item" href="#">Another action</a>
+                        <a class="dropdown-item" href="#">Something else here</a>
+                        </div>
+                    </div>
+                  </td>
+                          
+                </tr>
+              </tbody >
+
+                 
+              <tbody id={{ registro.id}} class="collapse">
+                
+                  <tr >
+                      <th scope="col">Compañía</th>
+                      <th scope="col">Asegurado</th>
+                      <th scope="col">Tercero</th>
+                      <th scope="col">Denuncia</th>
+                      <th scope="col">Importe franquicia</th>
+                      <th scope="col">Descripción</th>
+                      <th scope="col">Póliza</th>
+                      <th scope="col">-</th>
+                  </tr>
+                 
+                <td>{{ registro.compania}}</td>
+                <td>{{ registro.asegurado}}</td>
+                <td>{{ registro.tercero}}</td>
+                <td>{{ registro.fe_denuncia}}</td>
+                <td>{{ registro.monto_franquicia}}</td>
+                <td>{{ registro.desc_siniestro}}</td>
+                <td>{{ registro.poliza}}</td>
+                <td>-</td>
+              </tbody>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <div class="col-md-8">
+        <p>No hay recuperos.</p>
+    </div>
+{% endif %}	
+
+{% endblock %}

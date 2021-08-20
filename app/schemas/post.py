@@ -24,15 +24,21 @@ class Users(Base):
     dependencia = db.Column(db.Integer) #debe ir el id de otro user
     images = db.relationship("Image", backref="owner", lazy="dynamic")
     recuperos = db.relationship("Recuperos")
+    puestos_usuarios = db.relationship("PuestosUsuarios")
+    equipos_usuarios = db.relationship("EquiposUsuarios")
     permisos_usuarios = db.relationship("Permisos", secondary = "usuariospermisos", backref="pu", lazy="dynamic")
     
 class PuestosUsuarios (Base):
     __tablename__ ="perfilesusuarios"
     puesto = db.Column(db.String(20), unique=True, nullable=False)
+    sub_codigo = db.Column(db.String(2), unique=True)
+    id_username = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
 class EquiposUsuarios (Base):
     __tablename__ = "equiposusuarios"
     equipo = db.Column(db.String(20), unique=True, nullable=False)
+    sub_codigo = db.Column(db.String(2), unique=True)
+    id_username = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
 class Recuperos (Base):
     __tablename__ = "recuperos"
@@ -43,6 +49,7 @@ class Recuperos (Base):
     fe_pago = db.Column(db.DateTime)
     importe_pagado = db.Column(db.Float())
     compania = db.Column(db.Integer) #tabla companias
+    comprador = db.Column(db.Integer) #tabla comprador
     estado = db.Column(db.Integer()) #tabla estados <parametro tabla recuperos>
     desc_siniestro = db.Column(db.Text())
     tercero = db.Column(db.String(50))
@@ -52,10 +59,12 @@ class Recuperos (Base):
     poliza = db.Column(db.Integer)
     monto_franquicia = db.Column(db.Float)
     responsabilidad = db.Column(db.Integer()) #tabla respondabilidades
+    analista_siniestro = db.Column(db.String(4)) #alfanumerico de GLM 
     usuario_responsable = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
     tareas_pendientes = db.relationship ("TareasPendientes")
     cobros = db.relationship ("Cobros")
     
+
 class Responsabilidades (Base):
     desc_responsabilidad = db.Column(db.String(50), nullable = False)
 
@@ -66,10 +75,18 @@ class Companias (Base):
     correos = db.Column(db.Integer) 
     correos_electronicos = db.relationship ("CorreosElectronicos")
 
+class Compradores (Base):
+    __tablename__ = "compradores"
+    nombre = db.Column(db.String(50), nullable= False)
+    telefono = db.Column(db.String(50))
+    correos = db.Column(db.Integer) 
+    correos_electronicos = db.relationship ("CorreosElectronicos")
+
 class CorreosElectronicos (Base):
     __tablename__ = "correoselectronicos"
     correo = db.Column(db.String(50), nullable = False)
     id_compania = db.Column(db.Integer, db.ForeignKey("companias.id"), nullable = False)
+    id_comprador = db.Column(db.Integer, db.ForeignKey("compradores.id"), nullable = False)
 
 class Image(Base):
     __tablename__ = "image"
@@ -107,17 +124,18 @@ class TareasPendientes (Base):
 class Permisos (Base):
     __tablename__ = "permisos"
     formulario = db.Column(db.String(20))
-    #permisos_usuarios = db.relationship("Users", secondary = "usuariospermisos",backref="up", lazy="dynamic")
+    permisos_usuarios = db.relationship("Users", secondary = "usuariospermisos",backref="up", lazy="dynamic")
 
 class UsuariosPermisos (Base):
     __tablename__ = "usuariospermisos"
-    id_usuario = db.Column(db.Integer, db.ForeignKey("users.id"), primary_key = True, nullable = False)
-    id_permiso = db.Column(db.Integer, db.ForeignKey("permisos.id"), primary_key = True, nullable = False)
+    usuario_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable = False)
+    permiso_id = db.Column(db.Integer, db.ForeignKey("permisos.id"), nullable = False)
 
 class Estados (Base):
     __tablename__ = "estados"
     desc_estado = db.Column(db.String(15), nullable = False)
-    estado_tabla = db.Column(db.String(30), nullable = False) 
+    estado_tabla = db.Column(db.String(30), nullable = False)
+    sub_codigo = db.Column(db.String(2), unique=True)
 
 class Cobros (Base):
     __tablename__ = "cobros"
@@ -125,7 +143,7 @@ class Cobros (Base):
     factura_nacion = db.Column(db.String(13))
     cantidad_cuotas = db.Column(db.Integer)
     importe_total = db.Column(db.Float)
-    id_recupero = db.Column(db.Integer, db.ForeignKey("recuperos.id"),  primary_key = True, nullable=False)
+    id_recupero = db.Column(db.Integer, db.ForeignKey("recuperos.id"), nullable=False)
     importes_cobros = db.relationship("ImportesCobros")
 
 class ImportesCobros (Base):
@@ -136,7 +154,7 @@ class ImportesCobros (Base):
     cuenta_bancaria = db.Column(db.String(50))
     numero_cuota = db.Column(db.Integer)
     importe_cuota = db.Column(db.Float)
-    id_cobro = db.Column(db.Integer, db.ForeignKey("cobros.id"), primary_key = True, nullable = False)
+    id_cobro = db.Column(db.Integer, db.ForeignKey("cobros.id"),  nullable = False)
     
 class Observaciones (Base):
     __tablename__ = "observaciones"

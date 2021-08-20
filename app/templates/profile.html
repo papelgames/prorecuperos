@@ -12,12 +12,16 @@
                 <h4>Phone</h4>
                 {% if user.phone %}
                 <p>{{ user.phone }}</p>
+                {% else %}
+                <p>Sin telefono
+                </p>
                 {% endif %}
+                
                 <h4>About me</h4>
                 {% if user.about_me %}
                 <p>{{ user.about_me|capitalize }}</p>
                 {% else %}
-                <p>Nothing to show us :( 
+                <p>Sin descripción
                     {% if user.username == g.user %}
                     <br><a href="{{ url_for('edit_profile') }}">Edit Profile</a>
                     {% endif %}

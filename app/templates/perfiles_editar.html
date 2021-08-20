@@ -7,13 +7,15 @@ Edit Profile
 {% block content %}
 <h1>Settings</h1>
 <h5>Editar Perfil</h5>
-<form method="post" action="{{ url_for('edit_profile')}}" novalidate>
+<form method="post"  novalidate>
     <div class="form-group">
 		{{ render_input(form.nombre, id= "nombre", class="form-control", placeholder="Nombre", value=user.nombre) }} 
 		{{ render_input(form.apellido, id= "apellido", class="form-control", placeholder="Apellido", value=user.apellido ) }}
 		{{ render_input(form.phone, id= "phone", class="form-control", placeholder="Telefono", value=user.phone ) }}
-		{{ render_input(form.about, id= "about", rows="3", class="form-control", placeholder="Sobre Mi", value=user.about_me ) }}
-		
+		{{ render_input(form.estado, id= "estado", class="form-control", placeholder="Estado", value=user.estado ) }}
+		{{ render_input(form.puesto, id= "puesto", class="form-control", placeholder="Puesto", value=user.puesto ) }}
+		{{ render_input(form.equipo, id= "equipo", class="form-control", placeholder="Equipo", value=user.equipo ) }}
+		{{ render_input(form.dependencia, id= "dependencia", class="form-control", placeholder="Dependencia", value=user.dependencia ) }}
 	</div>
 	<button type="submit" class="btn btn-primary">Guardar cambios</button>
 </form>

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% from "_render_elements.html" import render_input %}
+
+{% block title %}
+Cobros
+{% endblock %}
+{% block content %}
+<div class="row">
+	<div class="offset-md-3 col-md-6">
+		<h1>Cobros</h1>
+		<form method="post" action="{{ url_for('nuevo_cobro', recupero = recupero) }}" novalidate>
+			
+			{{ render_input(form.pagador, id= "pagador" , class="form-control", placeholder="Persona o compañía pagadora" ) }}
+			{{ render_input(form.factura_nacion, id= "factura_nacion" ,class="form-control", placeholder="Numero de factura de Nación Seguros" ) }}
+			{{ render_input(form.cantidad_cuotas, id= "cantidad_cuotas" ,class="form-control", placeholder="Elija la cantidad de cuotas" ) }}
+			{{ render_input(form.importe_total, id= "importe_total" ,class="form-control", placeholder="Importe recuperado" ) }}
+			
+			<button type="submit" class="btn btn-primary">Confirmar</button>
+		</form>
+	</div>
+</div>
+{% endblock %}
